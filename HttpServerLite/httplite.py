@@ -6,6 +6,8 @@ import json
 log = print
 global STATIC_DIR
 STATIC_DIR = ''
+
+HEADER_CONTENT_TYPE = 'Content-Type:text/html; charset=UTF-8'
 class Request():
     def __init__(self, orign_request, addr):
         self.path = None
@@ -44,13 +46,13 @@ class Response():
         res.body = body
         if body:
             res.headers['Content-Length'] = str(len(body))
+            res.headers['Content-Type'] = HEADER_CONTENT_TYPE
         return res
     @classmethod
     def bad_request(cls):
         return Response(status=400, message='Bad Request')
     def data(self):
-        signature = ' '.join(
-            [self.RESPONSE_FIRST_VERSION, str(self.status), self.message])
+        signature = ' '.join([self.RESPONSE_FIRST_VERSION, str(self.status), self.message])
         body = self.body
         response = bytes('', encoding='utf-8')
         if body:
@@ -74,10 +76,9 @@ def file(page) -> bytes:
         return b'403 Forbidden'
     if os.path.isfile(path_):
         body = read_file(path_, 'rb')
-        return body
     else:
         body = read_file(path_+'/index.html', 'rb')
-        return body
+    return body
 def handle_get_request(request) -> Response:
     path = request.path
     if path == '/':
@@ -123,11 +124,11 @@ def accept_socket(sock: socket, addr, REQUEST_MAX_LENGTH=1024 * 1024):
     ori_request = sock.recv(REQUEST_MAX_LENGTH)
     request = Request(ori_request.decode('utf-8'), addr)
     response = handle_request(request)
-    after_handle_response(response)
+    #after_handle_response(response)
     response_bytes = response.data()
     sock.send(response_bytes)
     sock.close()
-    log(' >>>>[INFO] '+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+' Accept connection %s:%s \n\r Accept http request:%s' % (addr[0], addr[1], request.signature,))
+    log(' >>>>[INFO] '+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+' Accept Connection %s:%s   %s' % (addr[0], addr[1], request.signature,))
 def start(host, port, static_dir='static'):
     global _main
     global STATIC_DIR
