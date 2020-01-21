@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0" name="viewport">
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <link rel="dns-prefetch" href="https://blog.itjoker.cn">
+    <script type="text/javascript" src="https://apps.bdimg.com/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="https://blog.itjoker.cn/media/script/script.min.js"></script>
+    <meta name="author" content="ITJoker">
+    <meta name="description" content="Be brave no matter what your life is like to you.">
+    <meta name="keywords" content="ITJoker,Blog,ITJoker&#39;sBlog,Peerless">
+    <title>Page Not Found</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+        
+        html {
+            font-family: 'Fira Code Medium', Microsoft Yahei, monospace;
+            background-color: #292a2d
+        }
+        
+        a {
+            color: #666;
+            background-color: transparent;
+            text-decoration: none;
+            transition: color .2s ease, border-color .2s ease, background .2s ease, opacity .2s ease
+        }
+        
+        a:hover {
+            color: #2d96bd;
+            text-decoration: none;
+            transition: color .2s ease, border-color .2s ease, background .2s ease, opacity .2s ease
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            text-align: center
+        }
+        
+        .box {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            flex-direction: column
+        }
+        
+        .number {
+            font-size: 80px;
+            color: #fff;
+            font-weight: 700
+        }
+        
+        .text {
+            font-size: 14px;
+            margin: 24px;
+            color: #fff
+        }
+        
+        .btn-container {
+            display: flex;
+            justify-content: center
+        }
+        
+        .btn {
+            padding: 8px 24px;
+            display: inline-block;
+            text-decoration: none;
+            background: #fff;
+            border: 2px solid #efefef;
+            color: #333;
+            margin: 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center
+        }
+        
+        .footer {
+            padding: 16px;
+            border-top: 1px solid #efefef;
+            color: #777;
+            font-size: .8rem;
+            font-weight: lighter
+        }
+        
+        .footer #hitokoto {
+            text-decoration: none;
+            font-weight: 700;
+            font-size: .8rem;
+            color: #777
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <div class="number">4 0 4</div>
+        <div class="text">Page not found</div>
+        <div class="btn-container"><a class="btn" id="back"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px"><path fill="none" d="M0 0h24v24H0z"/><path d="M5.828 7l2.536 2.536L6.95 10.95 2 6l4.95-4.95 1.414 1.414L5.828 5H13a8 8 0 1 1 0 16H4v-2h9a6 6 0 1 0 0-12H5.828z"/></svg> Back</a></div>
+    </div>
+    <footer class="footer">
+        <script>
+            (function() {
+                var t = document.createElement("script"),
+                    e = window.location.protocol.split(":")[0];
+                t.src = "https" === e ? "https://zz.bdstatic.com/linksubmit/push.js" : "http://push.zhanzhang.baidu.com/push.js";
+                var s = document.getElementsByTagName("script")[0];
+                s.parentNode.insertBefore(t, s)
+            })()
+        </script>
+        <div class="copyright"><b id="hitokoto"></b><br><svg viewBox="0 0 1024 1024" style="margin-left:5px;margin-right:5px" version="1.0" width="8" height="8" class="my-face"><path d="M863.597631 513.574282l-271.33965-140.213484L729.783667 81.926656c3.583731-7.87141 7.167462-15.742819 7.167462-25.214109C736.887134 25.226908 708.345275 0.012799 672.635953 0.012799a63.611229 63.611229 0 0 0-39.293053 12.607055c-1.791866 1.59988-3.519736 3.19976-5.311602 3.19976L147.87531 418.925381a55.547834 55.547834 0 0 0-19.646527 47.356448c1.791866 17.278704 14.27093 33.021523 32.125591 42.492813l271.33965 141.749369L292.504463 945.221908c-12.479064 25.214109-1.791866 53.563983 23.166262 69.306802 10.751194 6.335525 23.230258 9.47129 35.709322 9.47129 16.062795 0 32.125591-4.735645 44.604655-15.742819l480.091993-403.297753a55.547834 55.547834 0 0 0 19.646526-47.228458 61.243407 61.243407 0 0 0-32.12559-44.156688z" fill="#93b5cf"></path></svg>            ITJoker &copy;Copyright
+            <script>
+                var date = new Date;
+                document.write("" + date.getFullYear())
+            </script>| Powered by <a href="https://coding.net" target="_blank">Coding.net</a></div>
+    </footer>
+    <script type="text/javascript" src="https://blog.itjoker.cn/media/live2d/L2Dwidget.min.js"></script>
+    <script>
+        document.write('<div id="home_path" style="display:none;">https://blog.itjoker.cn</div>')
+        $(document).ready(function() {
+            loadlive2d();
+        });
+    </script>
+    <script>
+        hitokoto();
+        //console.clear();
+        console.log("\n %c \u26a1Theme:Chic Author's Blog:https://blog.itjoker.cn  Write By ITJoker  \n\n", "color: #ffffff; background: rgba(49, 49, 49, 0.85); padding:5px 0;border-radius:5px;", );
+        var back = document.getElementById('back')
+        back.onclick = function() {
+            console.log('run...');
+            window.location.href = 'https://blog.itjoker.cn';
+        }
+    </script>
+</body>
+
+</html>

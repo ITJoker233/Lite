@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://blog.itjoker.cn</id>
+    <title>💤ITJoker</title>
+    <updated>2020-01-18T13:11:29.469Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://blog.itjoker.cn"/>
+    <link rel="self" href="https://blog.itjoker.cn/atom.xml"/>
+    <subtitle>Be brave no matter what your life is like to you.</subtitle>
+    <logo>https://blog.itjoker.cn/images/avatar.png</logo>
+    <icon>https://blog.itjoker.cn/favicon.ico</icon>
+    <rights>All rights reserved 2020, 💤ITJoker</rights>
+    <entry>
+        <title type="html"><![CDATA[2020Bilibili拜年祭，火锅宴加菜小脚本~]]></title>
+        <id>https://blog.itjoker.cn/post/zXB6J1yv_</id>
+        <link href="https://blog.itjoker.cn/post/zXB6J1yv_">
+        </link>
+        <updated>2020-01-18T11:35:55.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[关于主题Gridea-theme-Chic中Music插件的使用]]></title>
+        <id>https://blog.itjoker.cn/post/azQ6rNbFG</id>
+        <link href="https://blog.itjoker.cn/post/azQ6rNbFG">
+        </link>
+        <updated>2020-01-09T15:30:34.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[关于Gridea-theme-Chic主题的Doc]]></title>
+        <id>https://blog.itjoker.cn/post/605dIl4Tn</id>
+        <link href="https://blog.itjoker.cn/post/605dIl4Tn">
+        </link>
+        <updated>2020-01-02T21:50:42.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[用Python写一个百度POST实时推送工具]]></title>
+        <id>https://blog.itjoker.cn/post/7NmHOKo_h</id>
+        <link href="https://blog.itjoker.cn/post/7NmHOKo_h">
+        </link>
+        <updated>2019-12-31T10:07:17.000Z</updated>
+        <summary type="html"><![CDATA[<p>想抄就抄吧</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>想抄就抄吧</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[关于"菠菜"站，BBin视讯的连接方式分析...]]></title>
+        <id>https://blog.itjoker.cn/post/859FVOsEl</id>
+        <link href="https://blog.itjoker.cn/post/859FVOsEl">
+        </link>
+        <updated>2019-12-31T03:34:29.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[关于网上的“人肉”里面的技巧，简单解释（以下纯属个人理解）]]></title>
+        <id>https://blog.itjoker.cn/post/a-uhd40dh</id>
+        <link href="https://blog.itjoker.cn/post/a-uhd40dh">
+        </link>
+        <updated>2019-11-09T14:39:57.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[给树莓派SD卡扩容 以Buster版本的Raspbian系统为例]]></title>
+        <id>https://blog.itjoker.cn/post/h2bN0D-0F</id>
+        <link href="https://blog.itjoker.cn/post/h2bN0D-0F">
+        </link>
+        <updated>2019-10-18T15:48:40.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[关于3.5寸屏幕校准问题]]></title>
+        <id>https://blog.itjoker.cn/post/LQmQeQqsZ</id>
+        <link href="https://blog.itjoker.cn/post/LQmQeQqsZ">
+        </link>
+        <updated>2019-09-16T08:48:05.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[关于调用openpyxl内存泄漏]]></title>
+        <id>https://blog.itjoker.cn/post/YqHc8Ce_N</id>
+        <link href="https://blog.itjoker.cn/post/YqHc8Ce_N">
+        </link>
+        <updated>2019-09-14T08:47:19.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[给树莓派换源，加快更新软件的速度~]]></title>
+        <id>https://blog.itjoker.cn/post/07jUaFw0O</id>
+        <link href="https://blog.itjoker.cn/post/07jUaFw0O">
+        </link>
+        <updated>2019-05-10T08:43:28.000Z</updated>
+    </entry>
+</feed>
