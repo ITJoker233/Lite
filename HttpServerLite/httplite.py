@@ -6,7 +6,6 @@ import json
 log = print
 global STATIC_DIR
 STATIC_DIR = ''
-
 HEADER_CONTENT_TYPE = 'Content-Type:text/html; charset=UTF-8'
 class Request():
     def __init__(self, orign_request, addr):
@@ -34,7 +33,7 @@ class Request():
             self.headers[item[0]] = item[1].strip()
         self.method, self.path, *other = self.signature.split(' ')
 class Response():
-    def __init__(self, status=200, headers={}, body=None, message='ok', RESPONSE_FIRST_VERSION='HTTP-Version: HTTP/1.0'):
+    def __init__(self, status=200, headers={}, body=None, message='ok', RESPONSE_FIRST_VERSION='HTTP/1.0'):
         self.status = status
         self.headers = headers
         self.body = body
@@ -46,13 +45,20 @@ class Response():
         res.body = body
         if body:
             res.headers['Content-Length'] = str(len(body))
-            res.headers['Content-Type'] = HEADER_CONTENT_TYPE
         return res
     @classmethod
     def bad_request(cls):
         return Response(status=400, message='Bad Request')
-    def data(self):
+    def headers_responses(self):
         signature = ' '.join([self.RESPONSE_FIRST_VERSION, str(self.status), self.message])
+        headers_str = str()
+        header_of_response = str()
+        for title, content in self.headers.items():
+            headers_str += ': '.join([title, content])+'\r\n'
+        headers_str = headers_str[:-2]
+        header_of_response += '\r\n'.join([signature, headers_str])+'\r\n\r\n'
+        return bytes(header_of_response, encoding='utf-8')
+    def data(self):
         body = self.body
         response = bytes('', encoding='utf-8')
         if body:
@@ -95,7 +101,8 @@ def handle_post_request(request) -> Response:
             if is_json(body[0]):
                 json_data = json.loads(body[0])
                 token = json_data['username'] + json_data['password']
-                success_data = json.dumps({'status': 1, 'message': 'success','token':token})
+                success_data = json.dumps(
+                    {'status': 1, 'message': 'success', 'token': token})
                 datas = success_data
             else:
                 datas = error_data
@@ -124,11 +131,14 @@ def accept_socket(sock: socket, addr, REQUEST_MAX_LENGTH=1024 * 1024):
     ori_request = sock.recv(REQUEST_MAX_LENGTH)
     request = Request(ori_request.decode('utf-8'), addr)
     response = handle_request(request)
-    #after_handle_response(response)
+    after_handle_response(response)
     response_bytes = response.data()
+    response_headers_bytes = response.headers_responses()
+    sock.send(response_headers_bytes)
     sock.send(response_bytes)
     sock.close()
-    log(' >>>>[INFO] '+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+' Accept Connection %s:%s   %s' % (addr[0], addr[1], request.signature,))
+    log(' >>>>[INFO] '+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
+        ' Accept Connection %s:%s   %s' % (addr[0], addr[1], request.signature,))
 def start(host, port, static_dir='static'):
     global _main
     global STATIC_DIR
@@ -140,4 +150,4 @@ def start(host, port, static_dir='static'):
         sock, addr = _main.accept()
         threading.Thread(target=accept_socket, args=(sock, addr)).start()
 if __name__ == '__main__':
-    start("0.0.0.0", 80, 'static')
+    start("0.0.0.0", 9000, 'static')
