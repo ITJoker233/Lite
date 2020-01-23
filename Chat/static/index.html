@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Chat</title>
+    <link type="text/css" href="https://cdn.jsdelivr.net/gh/MorFansLab/LiteWebChat_Frame@latest/litewebchat.min.css" rel="stylesheet" />
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <style>
+    html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .contaniner {
+            margin: 0;
+            height: 100%;
+            padding: 0;
+        }
+        
+        .abs.cover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        @media screen and (min-width:900px) {
+            body {
+                text-align: center;
+                background-color: #caeaf7;
+                -webkit-background-size: cover;
+                -moz-background-size: cover;
+                background-size: cover
+            }
+            .contaniner {
+                margin: 20px 0 50px
+            }
+            .pnl {
+                text-align: left;
+                margin-top: 80px;
+                margin-left: auto;
+                margin-right: auto;
+                margin-bottom: 10px;
+                max-width: 900px;
+                max-height: 700px;
+                width: 900px;
+                border-radius: .5em;
+                overflow: hidden;
+                -webkit-box-shadow: 0 0 8px 0 rgba(33, 101, 129, 0.4);
+                box-shadow: 0 0 8px 0 rgba(33, 101, 129, 0.4)
+            }
+            .body-bg {
+                display: block
+            }
+            .pnl-text {
+                max-width: 900px;
+                max-height: 200px;
+                margin-left: 26%;
+                margin-top: 42%;
+            }
+        }
+    }
+    @media screen and (max-width:899px) {
+        body {
+            text-align: center;
+            background-color: #caeaf7;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            background-size: cover
+        }
+        
+        .contaniner {
+            margin: 20px 0 50px
+        }
+        
+        .pnl {
+            text-align: left;
+            margin-top: 80px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 10px;
+            max-width: 450px;
+            max-height: 700px;
+            border-radius: .5em;
+            overflow: hidden;
+            -webkit-box-shadow: 0 0 8px 0 rgba(33, 101, 129, 0.4);
+            box-shadow: 0 0 8px 0 rgba(33, 101, 129, 0.4)
+        }
+        
+        .body-bg {
+            display: block
+        }
+        
+        .pnl-text {
+            max-width: 450px;
+            max-height: 100px;
+        }
+    }
+    .pnl-btn {
+        right: 1.5em !important;
+        bottom: .5em !important;
+        color: #fff;
+        padding: .3em;
+        width: 4em;
+        text-align: center;
+        background-color: #484a4b;
+        border-radius: .2em;
+        cursor: pointer;
+    }
+    textarea {
+        padding: .85em 1.2em;
+        line-height: 1;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        color: rgba(0, 0, 0, 0.7);
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        -webkit-box-shadow: 0 0 rgba(0, 0, 0, 0.3) inset;
+        box-shadow: 0 0 rgba(0, 0, 0, 0.3) inset;
+        width: 100%;
+        outline: 0;
+        -webkit-transition: all 0.2s ease;
+        -moz-transition: all 0.2s ease;
+        -o-transition: all 0.2s ease;
+        -ms-transition: all 0.2s ease;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        resize: none;
+        border-radius: 4px;
+    }
+    .pnl-btn:hover {
+        opacity: .8;
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+        filter: alpha(opacity=80)
+    }
+    .pnl-input {
+        max-height: 5.4em;
+        border-radius: 4px;
+    }
+    </style>
+</head>
+<!--
+    Use:LiteWebChat_Frame
+    tips 	正常
+    tips-primary 	首要的提示
+    tips-success 	成功提示
+    tips-info 	信息提示
+    tips-warning 	警告提示
+    tips-danger 	错误/危险提示
+-->
+
+<body>
+    <div class="abs cover contaniner">
+        <div class="abs cover pnl" style="overflow-y:auto;<!--[if IE]>display:inline;<![endif]-->">
+            <div class="lite-chatbox" id="history">
+            </div>
+
+        </div>
+        <div class="pnl-text">
+            <div class="pnl-input">
+                <textarea id="text" placeholder="在此输入..." wrap="hard"></textarea>
+            </div>
+            <div id="sendBtn" class="pnl-btn" onclick="sendMessage()">发送</div>
+        </div>
+    </div>
+    <div id="userid" style="display:none;"></div>
+    <script type="text/javascript">
+        var oHistory = $('#history');
+        var userid = $('#userid')
+        var message_box = $('#text');
+        if ("WebSocket" in window) {
+            console.log("您的浏览器支持 WebSocket!");
+            var ws = new WebSocket("ws://127.0.0.1:9001");
+            ws.onopen = function() {
+                console.log("websocket 已连接上");
+            }
+            ws.onmessage = function(evt) {
+                var dataReceive = decodeURIComponent(evt.data);
+                var json_obj = JSON.parse(dataReceive);
+                console.log(json_obj)
+                if (json_obj.info == 'startChat') {
+                    userid.text(oHistory.text() + json_obj.userid);
+                }
+                if (json_obj.online != 0) {
+                    $(document).attr("title", "Chat Online:" + json_obj.online.toString());
+                }
+                if (userid.text() != '') {
+                    if (json_obj.info == 'startChat') {
+                        var msg = '<div class="tips"><span>系统消息：成功加入聊天室<span></div>';
+                        oHistory.append(msg);
+                    } else if (json_obj.info != '') {
+                        var status = json_obj.status;
+                        var msg = '<div class="tips"><span class="tips-' + status + '">' + json_obj.info + '</span></div>';
+                        oHistory.append(msg);
+                    }
+                    if (userid.text() != json_obj.userid) {
+                        if (json_obj.chatdata != '') {
+                            var msgleft = '<div class="cleft cmsg">';
+                            var msgImg = '<img class="headIcon radius" ondragstart="return false;" oncontextmenu="return false;" src="https://b-ssl.duitang.com/uploads/item/201607/26/20160726185736_yPmrE.thumb.224_0.jpeg" />';
+                            var msgtitle = '<span class="title admin">&nbsp;游客&nbsp;</span>';
+                            var msgName = '<span class="name">' + msgtitle + '&nbsp;' + json_obj.userid.toString() + '</span>';
+                            var msgContent = '<span class="content">' + json_obj.chatdata + '</span>';
+                            var msg = msgleft + msgImg + msgName + msgContent + '</div>';
+                            console.log()
+                            oHistory.append(msg);
+                        }
+                    }
+                }
+
+            };
+
+            ws.onclose = function() {
+                var msg = '<div class="tips"><span class="tips-danger">系统消息：与服务器断开连接...</span></div>';
+                oHistory.append(msg);
+                console.log("连接已关闭...");
+            };
+
+        } else {
+            console.log("您的浏览器不支持 WebSocket!");
+        }
+
+        function sendMessage() {
+            var data = message_box.val().trim();
+            if (data != '') {
+                var obj = new Object();
+                obj.chatdata = data
+                var send_data = JSON.stringify(obj)
+                var msgleft = '<div class="cright cmsg">';
+                var msgImg = '<img class="headIcon radius" ondragstart="return false;" oncontextmenu="return false;" src="https://b-ssl.duitang.com/uploads/item/201607/26/20160726185736_yPmrE.thumb.224_0.jpeg" />';
+                var msgtitle = '<span class="title owner">&nbsp;我&nbsp;</span>';
+                var msgName = '<span class="name">' + msgtitle + '&nbsp;' + userid.val() + '</span>';
+                var msgContent = '<span class="content">' + data + '</span>';
+                var msg = msgleft + msgImg + msgName + msgContent + '</div>';
+                oHistory.append(msg);
+                ws.send(send_data);
+                message_box.val('');
+            } else {
+
+            }
+        }
+        $(document).bind("keydown", function(e) {
+            var theEvent = e || window.event;
+            var code = theEvent.keyCode || theEvent.which || theEvent.charCode;
+            if (code == 13) {
+                var elem = $(":focus");
+                if (elem.attr("id") != "Remark") {
+                    $("#sendBtn").click();
+                }
+
+
+            }
+        });
+    </script>
+</body>
+
+</html>

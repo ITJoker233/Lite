@@ -7,7 +7,7 @@ import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--port', default=8888, type=int,help="The port the server should listen on.")
+    parser.add_argument('--port', default=9001, type=int,help="The port the server should listen on.")
     args = parser.parse_args()
 
     if isinstance(args.port, int):

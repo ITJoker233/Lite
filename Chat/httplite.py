@@ -93,9 +93,8 @@ def handle_post_request(request) -> Response:
     datas = b'<h1>error<h1>'
     if headers['Content-Type'].replace(' ', '') == 'application/json;charset=UTF-8' or headers['Content-Type'].replace(' ', '') == 'application/json;':
         error_data = json.dumps({'status': 0, 'message': 'error'})
-        if path == '/login':
+        if path == '/chat?':
             if is_json(body[0]):
-                # sql 查询
                 json_data = json.loads(body[0])
                 token = hashlib.md5( bytes(json_data['username'] + json_data['password']+'passwords',encoding='utf-8') ).hexdigest()
                 success_data = json.dumps({'status': 1, 'message': 'success', 'token': token})
@@ -103,16 +102,8 @@ def handle_post_request(request) -> Response:
             else:
                 datas = error_data
             datas = bytes(datas, encoding='utf-8')
-        if path ='/info':
-            if is_json(body[0]):
-                json_data = json.loads(body[0])
-                user_token = json_data['token']
-                user_name = json_data['username']
-                user_pwd = json_data['password']
-                token = hashlib.md5( bytes(json_data['username'] + json_data['password']+'passwords',encoding='utf-8') ).hexdigest()
-                if(user_token == token):
-                    # do somethings
-                    pass
+        else:
+            datas = error_data
     return Response.ok(body=datas)
 def method_not_support(method) -> Response:
     try:
