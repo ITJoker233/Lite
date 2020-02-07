@@ -81,7 +81,7 @@ class Websocket:
             encoded = str(data, encoding='utf-8')
         self.finished = fin
         self.opcode = opcode
-        self.textMode = opcode is 1
+        self.textMode = opcode == 1
         return (encoded, fin, opcode)
 class Wsclient:
     clientid = 0
@@ -98,6 +98,7 @@ class WebsocketThread(threading.Thread):
     channel = 0
     details = 0
     server = 0
+    token = ''
     websocket = Websocket()
     message__ = {
             "userid":0,
@@ -105,41 +106,56 @@ class WebsocketThread(threading.Thread):
             "info":'',
             "status":'',
             "time":'',
+            "token":'',
             "online":0,
         }
-    def __init__(self, channel, details, client, server):
+    def __init__(self, channel, details, client, token,server):
         super(WebsocketThread, self).__init__()
         self.channel = channel
         self.details = details
         self.client = client
         self.server = server
+        self.token= token
     def run(self):
         self.connected = True
         msg = "[INFO] "+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()) + " Client ID:{0} Connected at {1}"
         print((msg.format(self.client.clientid, self.details[0])))
         self.websocket.do_handshake(self.channel)
-        msg = self.message__
-        msg['userid'] = self.client.clientid
-        msg['status'] = 'normal'
-        msg['chatdata'] = ''
-        msg['info'] = 'startChat'
-        msg['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        send_message = json.dumps(msg)
-        response = self.websocket.encode_data(True, send_message)
-        self.channel.send(response)
+        encodeddata = self.channel.recv(8192)
+        data = self.websocket.decode_data(encodeddata)
         message_ = self.message__
-        message_['online'] = len(client_list) - 1
-        message_['userid'] = self.client.clientid
-        message_['status'] = 'success'
-        msg['chatdata'] = ''
-        message_['info'] = "{0} 系统消息:  UserID: {1} 加入聊天".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.client.lastTimeSeen)),self.client.clientid)
-        message_['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        for cli in client_list:
-            if self.client.clientid != cli.clientid:
-                send_data = self.websocket.encode_data(True,json.dumps(message_))
-                cli.socket.send(send_data)
-        while self.connected:
-            self.message(self.channel)
+        if(self.token != data[0]):
+            message_['status'] = 'error'
+            message_['info'] = "Token Error!"
+            send_data = self.websocket.encode_data(True,json.dumps(message_))
+            self.channel.send(send_data)
+            client_list.remove(self.client)
+            self.stop()
+            msg = "[INFO] {0} Client IP:{1} ID: {2} Login Error [*] Online:{3}"
+            print((msg.format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()),self.details[0], self.client.clientid,len(client_list))))
+        else:
+            msg = self.message__
+            msg['userid'] = self.client.clientid
+            msg['status'] = 'normal'
+            msg['chatdata'] = ''
+            msg['info'] = 'startChat'
+            msg['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            send_message = json.dumps(msg)
+            response = self.websocket.encode_data(True, send_message)
+            self.channel.send(response)
+            message_ = self.message__
+            message_['online'] = len(client_list) - 1
+            message_['userid'] = self.client.clientid
+            message_['status'] = 'success'
+            msg['chatdata'] = ''
+            message_['info'] = "UserID: {0} 加入聊天".format(self.client.clientid)
+            message_['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            for cli in client_list:
+                if self.client.clientid != cli.clientid:
+                    send_data = self.websocket.encode_data(True,json.dumps(message_))
+                    cli.socket.send(send_data)
+            while self.connected:
+                self.message(self.channel)
     def stop(self):
         self.connected = False
         self.client.status = False
@@ -148,6 +164,8 @@ class WebsocketThread(threading.Thread):
         encodeddata = channel.recv(8192)
         data = self.websocket.decode_data(encodeddata)
         message_ = self.message__
+        if is_json(data[0]):
+            json_obj = json.loads(data[0])
         message_['userid'] = self.client.clientid
         if data[2] == 8:
             msg = "[INFO] {0} Client ID:{1} Closed Connecting! LastTimeSeen:{2}"
@@ -156,21 +174,30 @@ class WebsocketThread(threading.Thread):
             self.channel.close()
             message_['status'] = 'warning'
             message_['online'] = len(client_list)
-            message_['info'] = "系统消息: {0} 用户ID为: {1} 退出聊天室！".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.client.lastTimeSeen)),self.client.clientid)
+            message_['info'] = "用户ID为: {0} 退出聊天室！".format(self.client.clientid)
             message_['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             for cli in client_list:
                 send_data = self.websocket.encode_data(True,json.dumps(message_))
                 cli.socket.send(send_data)
             self.connected = False
         else:
-            msg = "[INFO] {0} Client IP:{1} ID: {2} On Chatting [*] Online:{3}"
-            print((msg.format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()),self.details[0], self.client.clientid,len(client_list))))
-            if is_json(data[0]):
-                chatdata = quote(json.loads(data[0])['chatdata'])
+            if(self.token != json_obj['token']):
+                message_['status'] = 'error'
+                message_['info'] = "Token Error!"
+                send_data = self.websocket.encode_data(True,json.dumps(message_))
+                channel.send(send_data)
+                client_list.remove(self.client)
+                self.stop()
+                msg = "[INFO] {0} Client IP:{1} ID: {2} Login Error [*] Online:{3}"
+                print((msg.format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()),self.details[0], self.client.clientid,len(client_list))))
+            else:
+                msg = "[INFO] {0} Client IP:{1} ID: {2} On Chatting [*] Online:{3}"
+                print((msg.format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()),self.details[0], self.client.clientid,len(client_list))))
+                chatdata = quote(json_obj['chatdata'])
                 if chatdata != '':
                     message_['online'] = len(client_list)
                     for cli in client_list:
-                        info = '系统时间: {0}'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))+'\n'
+                        info = 'None'
                         if self.client.clientid != cli.clientid:
                             message_['info'] = info
                             message_['status'] = 'normal'
@@ -203,21 +230,22 @@ class SocketServer():
     def startListening(self):
         global client_list
         self.connected = True
-        print(("Chat Server Started on Port {0}".format(self.port)))
+        token = hashlib.md5(base64.b64encode('ChatServer {0} 233'.format(time.time()).encode("utf-8"))).hexdigest()#密钥
+        print("Chat Server Started on Port {0}\nToken >{1}".format(self.port,token))
         while self.connected:
             channel, details = self.socketConn.accept()
             client = Wsclient(channel, self.clientid,True)
             client_list.append(client)
             self.clientid = self.clientid + 1
-            thread = WebsocketThread(channel, details, client, self)
+            thread = WebsocketThread(channel, details, client, token , self)
             thread.start()
             self.threads.append(thread)
 def is_json(myjson):
-   try:
-      json_object = json.loads(myjson)
-   except ValueError:
-      return False
-   return True
+    try:
+       json.loads(myjson)
+    except ValueError:
+       return False
+    return True
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', default=9001, type=int,help="The port the server should listen on.")
@@ -227,7 +255,6 @@ if __name__ == "__main__":
         def signalHandler(s, frame):
             if s == signal.SIGINT:
                 server.stopListening()
-                print('Server Stoped!')
                 sys.exit(0)
         signal.signal(signal.SIGINT, signalHandler)
         server.startListening()
