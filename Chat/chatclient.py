@@ -2,8 +2,9 @@
 import time,base64,hashlib,json,signal,sys,argparse,websocket,asyncio,_thread
 from urllib.parse import quote,unquote
 log = print
-global UserID,status,token
+global UserID,status,token,username
 token = ''
+username = ''
 status = True
 UserID = 0
 def on_message(ws, message):
@@ -11,13 +12,16 @@ def on_message(ws, message):
     global UserID
     if(raw_data['info'] == 'startChat'):
         UserID = int(raw_data['userid'])
-    info = '[{0}] {1} Online:{2} '
-    msg = '[Recv] {0} User ID: {1} >:{2}'
+    info_fail = '[{0}] {1} Online:{2} '
+    info = 'info:{0} online:{1}'
+    msg = '[Recv] {0} \nUser ID: {1} Username:{2} >:{3}'
     chatdata = unquote(unquote(raw_data['chatdata']))
-    if(len(raw_data['chatdata'])>0):
-        log(msg.format(raw_data['time'],raw_data['userid'],chatdata))
-    else:
-        log(info.format(raw_data['status'],raw_data['info'],raw_data['online']))
+    if(len(raw_data['status']) > 0):
+        if(raw_data['status']!='normal'):
+            log(info_fail.format(raw_data['status'],raw_data['info'],raw_data['online']))
+        else:
+            log(info.format(raw_data['info'],raw_data['online']))
+        log(msg.format(raw_data['time'],raw_data['userid'],raw_data['username'],chatdata))
     log('[Your ID:{0}] >:'.format(UserID))
 def on_error(ws, error):
     log(error)
@@ -34,12 +38,13 @@ def on_close(ws):
     ws.close()
     log('[INFO] Client Exit Success!')
 def Chat(client):
+    global username,token,status,UserID
     message = {
         "chatdata":'',
         "time":'',
+        "username":username,
         "token":token,
     }
-    global status,UserID
     while status:
         chatdata = input('')
         message['chatdata'] = quote(chatdata)
@@ -56,6 +61,9 @@ if __name__ == "__main__":
         client = 0 
         token = args.token
         if isinstance(args.server, str):
+            username = input('Username: > ')
+            while len(username)<3:
+                username = input('Username: > ')
             client = websocket.WebSocketApp('ws://'+args.server+':'+str(args.port),on_message=on_message,on_error=on_error,on_close=on_close,on_open=on_open)
             client.run_forever()
         def signalHandler(s, frame):

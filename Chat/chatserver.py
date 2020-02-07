@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-import socket,time,base64,hashlib,struct,threading,json,signal,sys,argparse,httplite
+import socket,time,base64,hashlib,struct,threading,json,signal,sys,argparse,httplite,os
 from urllib.parse import quote,unquote
-global client_list
+global client_list,block_list,login_error_list
 client_list = []
+block_list = []
+login_error_list = {}
 class Websocket:
     finished = False
     opcode = 0
@@ -107,6 +109,7 @@ class WebsocketThread(threading.Thread):
             "status":'',
             "time":'',
             "token":'',
+            "username":'',
             "online":0,
         }
     def __init__(self, channel, details, client, token,server):
@@ -117,6 +120,7 @@ class WebsocketThread(threading.Thread):
         self.server = server
         self.token= token
     def run(self):
+        global login_error_list,block_list
         self.connected = True
         msg = "[INFO] "+time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()) + " Client ID:{0} Connected at {1}"
         print((msg.format(self.client.clientid, self.details[0])))
@@ -131,6 +135,17 @@ class WebsocketThread(threading.Thread):
             self.channel.send(send_data)
             client_list.remove(self.client)
             self.stop()
+            num = login_error_list.get(self.details[0])
+            if(num):
+                num +=1
+                if(num>3):
+                    blockIP(self.details[0])
+                    block_list.append(self.details[0])
+                    block_list = list(set(block_list))
+                else:
+                    login_error_list.update({self.details[0]:num})
+            else:
+                login_error_list.update({self.details[0]:1})
             msg = "[INFO] {0} Client IP:{1} ID: {2} Login Error [*] Online:{3}"
             print((msg.format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()),self.details[0], self.client.clientid,len(client_list))))
         else:
@@ -170,20 +185,21 @@ class WebsocketThread(threading.Thread):
         if data[2] == 8:
             msg = "[INFO] {0} Client ID:{1} Closed Connecting! LastTimeSeen:{2}"
             print(msg.format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()),self.client.clientid, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.client.lastTimeSeen))))
-            client_list.remove(self.client)
-            self.channel.close()
             message_['status'] = 'warning'
             message_['online'] = len(client_list)
             message_['info'] = "用户ID为: {0} 退出聊天室！".format(self.client.clientid)
             message_['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            message_['chatdata'] =''
             for cli in client_list:
                 send_data = self.websocket.encode_data(True,json.dumps(message_))
                 cli.socket.send(send_data)
             self.connected = False
+            client_list.remove(self.client)
+            self.channel.close()
         else:
-            if(self.token != json_obj['token']):
+            if(self.token != json_obj['token'] or len(json_obj['username']) < 3):
                 message_['status'] = 'error'
-                message_['info'] = "Token Error!"
+                message_['info'] = "Connect Error!"
                 send_data = self.websocket.encode_data(True,json.dumps(message_))
                 channel.send(send_data)
                 client_list.remove(self.client)
@@ -191,8 +207,8 @@ class WebsocketThread(threading.Thread):
                 msg = "[INFO] {0} Client IP:{1} ID: {2} Login Error [*] Online:{3}"
                 print((msg.format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()),self.details[0], self.client.clientid,len(client_list))))
             else:
-                msg = "[INFO] {0} Client IP:{1} ID: {2} On Chatting [*] Online:{3}"
-                print((msg.format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()),self.details[0], self.client.clientid,len(client_list))))
+                msg = "[INFO] {0} Client IP:{1} \n ID: {2} UserName:{3} On Chatting [*] Online:{4}"
+                print((msg.format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()),self.details[0], self.client.clientid,json_obj['username'],len(client_list))))
                 chatdata = quote(json_obj['chatdata'])
                 if chatdata != '':
                     message_['online'] = len(client_list)
@@ -200,6 +216,7 @@ class WebsocketThread(threading.Thread):
                         info = 'None'
                         if self.client.clientid != cli.clientid:
                             message_['info'] = info
+                            message_['username'] = json_obj['username']
                             message_['status'] = 'normal'
                             message_['chatdata'] = chatdata
                             message_['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -207,31 +224,48 @@ class WebsocketThread(threading.Thread):
                             cli.socket.send(send_data)
                     channel.send(self.websocket.encode_data(True,json.dumps({"userid":self.client.clientid,"online":len(client_list),"info":''})))
 class SocketServer():
+    password = ''
     port = 0
     clientid = 1
     threads = []
     socketConn = 0
     connected = False
-    def __init__(self, address, port):
+    def __init__(self, address, port ,password):
+        self.password = password
         self.port = port
         self.socketConn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socketConn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socketConn.bind(("", port))
         self.socketConn.listen(1)
     def stopListening(self):
-        global client_list
+        global client_list,block_list
         self.connected = False
         for thread in self.threads:
             thread.stop()
         for client in client_list:
             client.socket.close()
         self.socketConn.close()
+        fo = open('block_list.txt','a')
+        for item in block_list:
+            fo.write('{0}'.format(item))
+        fo.close()
         print("Chat Server Stopped Listening")
     def startListening(self):
         global client_list
         self.connected = True
-        token = hashlib.md5(base64.b64encode('ChatServer {0} 233'.format(time.time()).encode("utf-8"))).hexdigest()#密钥
-        print("Chat Server Started on Port {0}\nToken >{1}".format(self.port,token))
+        token = hashlib.md5(base64.b64encode(self.password.encode("utf-8"))).hexdigest()#密钥
+        print("Chat Server Started on Port {0}\nToken:\n{1}".format(self.port,token))
+        fo = open('block_list.txt','r')
+        block_ips = fo.readline().replace('\n','').replace('\r','')
+        if(len(block_ips)>0):
+            unblockIP(block_ips)
+        while len(block_ips)>0:
+            block_ips = fo.readline().replace('\n','').replace('\r','')
+            unblockIP(block_ips)
+        fo.close()
+        fo1 = open('block_list.txt','w')
+        fo1.write('')
+        fo1.close()
         while self.connected:
             channel, details = self.socketConn.accept()
             client = Wsclient(channel, self.clientid,True)
@@ -240,6 +274,24 @@ class SocketServer():
             thread = WebsocketThread(channel, details, client, token , self)
             thread.start()
             self.threads.append(thread)
+def blockIP(ipAddress):
+    if len(ipAddress)>0:
+        cmd = 'iptables -I INPUT -s {0} -j DROP'.format(ipAddress)
+        os.system(cmd)
+        #saveIptables()
+        print('[INFO] Blocked IP {0}'.format(ipAddress))
+    else:
+        return 0
+def unblockIP(ipAddress):
+    if len(ipAddress)>0:
+        cmd = 'iptables -D INPUT -s {0} -j DROP'.format(ipAddress)
+        os.system(cmd)
+        #saveIptables()
+        print('[INFO] UnBlocked IP {0}'.format(ipAddress))
+    else:
+        return 0
+def saveIptables():
+    os.system('systemctl restart iptables')
 def is_json(myjson):
     try:
        json.loads(myjson)
@@ -249,9 +301,10 @@ def is_json(myjson):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', default=9001, type=int,help="The port the server should listen on.")
+    parser.add_argument('--password', default='Chat Server', type=str,help="The port the server should listen on.")
     args = parser.parse_args()
     if isinstance(args.port, int):
-        server = SocketServer("0.0.0.0", args.port)
+        server = SocketServer("0.0.0.0", args.port,args.password)
         def signalHandler(s, frame):
             if s == signal.SIGINT:
                 server.stopListening()
